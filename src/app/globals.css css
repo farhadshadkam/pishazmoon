@@ -1,0 +1,29 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+
+:root{--b900:#141E4D;--b700:#1D2E7A;--b500:#2E4BD1;--b100:#E7ECFF;--teal:#0E9C9C;--amber:#F5A623;--ok:#16A34A;--bad:#E11D48;--ink:#131A33;--muted:#5D6480;--line:#E4E7F2}
+*{box-sizing:border-box}
+body{font-family:Vazirmatn,Tahoma,sans-serif;background:#F6F7FB;color:var(--ink);font-size:15px;line-height:1.9;margin:0}
+
+@layer components{
+.card{@apply bg-white border border-[#E4E7F2] rounded-2xl shadow-sm p-5}
+.btn{@apply inline-flex items-center justify-center gap-1.5 cursor-pointer font-semibold rounded-xl px-5 py-2.5 text-sm transition disabled:opacity-45 disabled:cursor-not-allowed}
+.btn-p{@apply btn text-white;background:linear-gradient(135deg,#1D2E7A,#2E4BD1)}
+.btn-t{@apply btn text-white bg-[#0E9C9C]}
+.btn-g{@apply btn bg-white border border-[#E4E7F2] text-[#131A33]}
+.btn-d{@apply btn bg-rose-50 text-rose-600}
+.btn-sm{@apply px-3 py-1.5 text-xs rounded-lg}
+.inp{@apply w-full border-2 border-[#E4E7F2] bg-white rounded-xl px-3.5 py-2.5 text-sm focus:border-[#2E4BD1] focus:outline-none}
+.badge{@apply inline-flex items-center text-xs font-bold rounded-full px-3 py-0.5}
+.b-ok{@apply badge bg-emerald-50 text-emerald-600}
+.b-bad{@apply badge bg-rose-50 text-rose-600}
+.b-warn{@apply badge bg-amber-50 text-amber-700}
+.b-info{@apply badge bg-[#E7ECFF] text-[#1D2E7A]}
+.b-gray{@apply badge bg-slate-100 text-slate-500}
+.stat{@apply card p-4}
+.stat b{@apply block text-2xl text-[#1D2E7A]}
+.tblwrap{@apply overflow-x-auto border border-[#E4E7F2] rounded-xl bg-white}
+.tblwrap table{@apply w-full border-collapse text-sm}
+.tblwrap th{@apply bg-[#F1F3FA] px-3 py-2.5 text-right text-xs text-[#141E4D] whitespace-nowrap}
+.tblwrap td{@apply px-3 py-2 border-t border-[#E4E7F2] whitespace-nowrap}
+.upbox{@apply border-2 border-dashed border-[#E4E7F2] rounded-xl text-center p-8 cursor-pointer hover:border-[#2E4BD1] hover:bg-[#FAFBFF] bg-white}
+}
