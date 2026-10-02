@@ -41,32 +41,34 @@ model OtpCode {
 }
 
 model Standard {
-  id          String   @id @default(cuid())
-  code        String   @unique
+  id          String    @id @default(cuid())
+  code        String    @unique
   groupName   String
   profession  String
   job         String
   title       String
   hours       Int
   price       Int
-  examMinutes Int      @default(60)
-  passPct     Int      @default(70)
+  examMinutes Int       @default(60)
+  passPct     Int       @default(70)
   description String?
   contentKey  String?
-  published   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  chapters    Chapter[]
 
   @@index([groupName, profession, job])
 }
 
 model Chapter {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   standardId String
-  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  standard   Standard  @relation(fields: [standardId], references: [id], onDelete: Cascade)
   title      String
   weight     Int
   order      Int
+  questions  Question[]
 
   @@index([standardId])
 }
@@ -125,21 +127,21 @@ model ExamCode {
 }
 
 model ExamAttempt {
-  id           String   @id @default(cuid())
-  codeId       String
-  userId       String
-  standardId   String
-  startedAt    DateTime @default(now())
-  durationSec  Int
-  plan         Json?
-  submittedAt  DateTime?
-  autoSubmitted Boolean @default(false)
-  score        Int?
-  passed       Boolean?
-  perChapter   Json?
-  byDifficulty Json?
-  byCognitive  Json?
-  status       String   @default("IN_PROGRESS")
+  id            String    @id @default(cuid())
+  codeId        String
+  userId        String
+  standardId    String
+  startedAt     DateTime  @default(now())
+  durationSec   Int
+  plan          Json?
+  submittedAt   DateTime?
+  autoSubmitted Boolean   @default(false)
+  score         Int?
+  passed        Boolean?
+  perChapter    Json?
+  byDifficulty  Json?
+  byCognitive   Json?
+  status        String    @default("IN_PROGRESS")
 
   @@index([userId, startedAt])
 }
