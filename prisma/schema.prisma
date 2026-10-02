@@ -1,29 +1,31 @@
-generator client { provider = "prisma-client-js" }
-datasource db    { provider = "postgresql"; url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model AdminUser {
   id           String    @id @default(cuid())
   email        String    @unique
   passwordHash String
   name         String
-  role         String    @default("admin") // admin | superadmin
-  totpSecret   String?
+  role         String    @default("admin")
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 }
 
 model User {
-  id         String       @id @default(cuid())
+  id         String   @id @default(cuid())
   firstName  String
   lastName   String
   birthYear  Int
   county     String
-  nationalId String       @unique
-  mobile     String       @unique
-  createdAt  DateTime     @default(now())
-  orders     Order[]
-  codes      ExamCode[]
-  attempts   ExamAttempt[]
+  nationalId String   @unique
+  mobile     String   @unique
+  createdAt  DateTime @default(now())
 }
 
 model OtpCode {
@@ -34,130 +36,152 @@ model OtpCode {
   tries     Int       @default(0)
   usedAt    DateTime?
   createdAt DateTime  @default(now())
+
   @@index([mobile, createdAt])
 }
 
 model Standard {
-  id          String       @id @default(cuid())
-  code        String       @unique
-  groupName   String       // گروه برنامه‌ریزی درسی
-  profession  String       // حرفه
-  job         String       // شغل
+  id          String   @id @default(cuid())
+  code        String   @unique
+  groupName   String
+  profession  String
+  job         String
   title       String
   hours       Int
   price       Int
-  examMinutes Int          @default(60)
-  passPct     Int          @default(70)
+  examMinutes Int      @default(60)
+  passPct     Int      @default(70)
   description String?
-  contentKey  String?      // کلید PDF در Object Storage
-  published   Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  chapters    Chapter[]
-  orders      Order[]
-  codes       ExamCode[]
-  attempts    ExamAttempt[]
+  contentKey  String?
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@index([groupName, profession, job])
 }
 
 model Chapter {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   standardId String
-  standard   Standard  @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
   title      String
-  weight     Int       // ۱..۴۰ — وزن از مجموع ۴۰
+  weight     Int
   order      Int
-  questions  Question[]
+
   @@index([standardId])
 }
 
-enum QuestionStatus { DRAFT PENDING APPROVED PUBLISHED REJECTED }
+enum QuestionStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
 
 model Question {
   id          String         @id @default(cuid())
   chapterId   String
   chapter     Chapter        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   text        String
-  opt         String[]       // دقیقاً ۴ گزینه
-  correct     Int            // ۰..۳
-  cognitive   String         // یادآوری/فهم/کاربرد/تحلیل/ارزیابی
-  difficulty  String         // آسان/متوسط/دشوار
+  opt         String[]
+  correct     Int
+  cognitive   String
+  difficulty  String
   source      String?
   aiGenerated Boolean        @default(false)
   status      QuestionStatus @default(PENDING)
   createdAt   DateTime       @default(now())
-  answers     ExamAnswer[]
+
   @@index([chapterId, status])
 }
 
 model Order {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
-  user       User      @relation(fields: [userId], references: [id])
   standardId String
-  standard   Standard  @relation(fields: [standardId], references: [id])
   amount     Int
-  gateway    String    @default("zarinpal")
+  gateway    String   @default("zarinpal")
   authority  String?
   refId      String?
-  status     String    @default("PENDING") // PENDING | PAID | FAILED
-  createdAt  DateTime  @default(now())
-  codes      ExamCode[]
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+
   @@index([userId, createdAt])
 }
 
 model ExamCode {
-  id          String        @id @default(cuid())
-  code        String        @unique
+  id          String   @id @default(cuid())
+  code        String   @unique
   userId      String
-  user        User          @relation(fields: [userId], references: [id])
   standardId  String
-  standard    Standard      @relation(fields: [standardId], references: [id])
   orderId     String?
-  order       Order?        @relation(fields: [orderId], references: [id])
-  status      String        @default("ACTIVE") // ACTIVE | USED | EXPIRED
-  purchasedAt DateTime      @default(now())
-  expiresAt   DateTime      // ۳۰ روز
+  status      String   @default("ACTIVE")
+  purchasedAt DateTime @default(now())
+  expiresAt   DateTime
   usedAt      DateTime?
-  attempts    ExamAttempt[]
+
   @@index([userId])
 }
 
 model ExamAttempt {
-  id           String        @id @default(cuid())
+  id           String   @id @default(cuid())
   codeId       String
-  code         ExamCode      @relation(fields: [codeId], references: [id])
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
   standardId   String
-  standard     Standard      @relation(fields: [standardId], references: [id])
-  startedAt    DateTime      @default(now())
+  startedAt    DateTime @default(now())
   durationSec  Int
-  plan         Json?         // نقشه آزمون: ترتیب سوالات + جایگزیتی گزینه‌ها (سری — فقط سمت سرور)
+  plan         Json?
   submittedAt  DateTime?
-  autoSubmitted Boolean      @default(false)
+  autoSubmitted Boolean @default(false)
   score        Int?
   passed       Boolean?
   perChapter   Json?
   byDifficulty Json?
   byCognitive  Json?
-  status       String        @default("IN_PROGRESS")
-  answers      ExamAnswer[]
+  status       String   @default("IN_PROGRESS")
+
   @@index([userId, startedAt])
 }
 
 model ExamAnswer {
-  id         String      @id @default(cuid())
+  id         String  @id @default(cuid())
   attemptId  String
-  attempt    ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   questionId String
-  question   Question    @relation(fields: [questionId], references: [id])
-  selected   Int?        // null = بی‌پاسخ
+  selected   Int?
   isCorrect  Boolean?
+
   @@unique([attemptId, questionId])
 }
 
-model Link      { id String @id @default(cuid()); title String; url String; active Boolean @default(true); order Int @default(0) }
-model Setting   { key String @id; value String }
-model BackupLog { id String @id @default(cuid()); type String; size Int; storageKey String?; adminEmail String; createdAt DateTime @default(now()) }
-model AuditLog  { id String @id @default(cuid()); actor String; action String; entity String; entityId String?; meta Json?; createdAt DateTime @default(now()) }
+model Link {
+  id     String @id @default(cuid())
+  title  String
+  url    String
+  active Boolean @default(true)
+  order  Int     @default(0)
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model BackupLog {
+  id         String   @id @default(cuid())
+  type       String
+  size       Int
+  storageKey String?
+  adminEmail String
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+}
