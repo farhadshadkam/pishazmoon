@@ -1,1 +1,5 @@
-{ "platform": "node", "app": "pishazmoon", "port": 3000 }
+{
+  "platform": "node",
+  "app": "pishazmoun",
+  "port": 3000
+}
