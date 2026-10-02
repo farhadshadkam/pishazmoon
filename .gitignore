@@ -1,0 +1,44 @@
+# وابستگی‌ها
+node_modules/
+.pnp
+.pnp.js
+
+# فایل‌های محیطی (هرگز کامیت نشود!)
+.env
+.env.local
+.env.production
+.env.development
+
+# خروجی بیلد Next.js
+.next/
+out/
+build/
+dist/
+
+# فایل‌های سیستم
+.DS_Store
+*.pem
+Thumbs.db
+
+# لاگ‌ها
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# تست
+coverage/
+
+# فایل‌های موقت
+*.swp
+*.swo
+*~
+
+# VS Code / JetBrains
+.vscode/
+.idea/
+
+# ⚠️ نکته مهم: پوشه prisma در این لیست نیست و نباید باشد!
