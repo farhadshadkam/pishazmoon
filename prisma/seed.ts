@@ -36,7 +36,7 @@ async function main() {
       { title: 'اینترنت، ایمیل و امنیت', weight: 6, order: 7 },
     ]},
   }});
-  const chs = await prisma.chapter.findMany({ where: { standardId: std.id }, orderBy: { order: 1 } });
+  const chs = await prisma.chapter.findMany({ where: { standardId: std.id }, orderBy: { order: 'asc' } });
   // نمونه: ۴ سوال انتشار‌یافته برای فصل ۱ (برای فعال‌سازی کامل آزمون، ۴۰+ سوال را از ایمپورت پیوست A وارد کنید)
   await prisma.question.createMany({ data: [
     { chapterId: chs[0].id, text: 'کدام گزینه ترتیب صحیح واحدهای حجم داده از کوچک به بزرگ است؟', opt: ['بیت ← بایت ← کیلوبایت ← مگابایت','بایت ← بیت ← کیلوبایت ← مگابایت','کیلوبایت ← بیت ← بایت ← مگابایت','بیت ← کیلوبایت ← بایت ← مگابایت'], correct: 0, cognitive: 'یادآوری', difficulty: 'آسان', status: 'PUBLISHED' },
