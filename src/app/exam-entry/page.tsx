@@ -6,7 +6,7 @@ export default function ExamEntry() {
   const [err, setErr] = useState(''); const router = useRouter();
   const start = async () => {
     sessionStorage.setItem('PA_ENTRY', JSON.stringify({ code, nationalId: nid, mobile: mob }));
-    const r = await fetch('/api/exam/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, nationalId: nid, mobile: mob }) }).then((x) => x.json());
+    const r: any = await fetch('/api/exam/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, nationalId: nid, mobile: mob }) }).then((x) => x.json());
     if (r.error) setErr({ CODE_NOT_FOUND: 'کد آزمون یافت نشد', CODE_USED: 'این کد قبلاً استفاده شده', CODE_EXPIRED: 'اعتبار کد به پایان رسیده', OWNER_MISMATCH: 'اطلاعات شناسایی مطابقت ندارد', BANK_INCOMPLETE: 'بانک سوالات در حال تکمیل است' }[r.error] || 'خطا');
     else router.push('/exam');
   };
