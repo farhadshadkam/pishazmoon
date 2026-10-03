@@ -18,14 +18,16 @@ model AdminUser {
 }
 
 model User {
-  id         String   @id @default(cuid())
+  id         String        @id @default(cuid())
   firstName  String
   lastName   String
   birthYear  Int
   county     String
-  nationalId String   @unique
-  mobile     String   @unique
-  createdAt  DateTime @default(now())
+  nationalId String        @unique
+  mobile     String        @unique
+  createdAt  DateTime      @default(now())
+  codes      ExamCode[]
+  attempts   ExamAttempt[]
 }
 
 model OtpCode {
@@ -41,22 +43,24 @@ model OtpCode {
 }
 
 model Standard {
-  id          String    @id @default(cuid())
-  code        String    @unique
+  id          String         @id @default(cuid())
+  code        String         @unique
   groupName   String
   profession  String
   job         String
   title       String
   hours       Int
   price       Int
-  examMinutes Int       @default(60)
-  passPct     Int       @default(70)
+  examMinutes Int            @default(60)
+  passPct     Int            @default(70)
   description String?
   contentKey  String?
-  published   Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  published   Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   chapters    Chapter[]
+  codes       ExamCode[]
+  attempts    ExamAttempt[]
 
   @@index([groupName, profession, job])
 }
@@ -99,57 +103,69 @@ model Question {
 }
 
 model Order {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   userId     String
+  user       User       @relation(fields: [userId], references: [id])
   standardId String
   amount     Int
-  gateway    String   @default("zarinpal")
+  gateway    String     @default("zarinpal")
   authority  String?
   refId      String?
-  status     String   @default("PENDING")
-  createdAt  DateTime @default(now())
+  status     String     @default("PENDING")
+  createdAt  DateTime   @default(now())
+  codes      ExamCode[]
 
   @@index([userId, createdAt])
 }
 
 model ExamCode {
-  id          String   @id @default(cuid())
-  code        String   @unique
+  id          String        @id @default(cuid())
+  code        String        @unique
   userId      String
+  user        User          @relation(fields: [userId], references: [id])
   standardId  String
+  standard    Standard      @relation(fields: [standardId], references: [id])
   orderId     String?
-  status      String   @default("ACTIVE")
-  purchasedAt DateTime @default(now())
+  order       Order?        @relation(fields: [orderId], references: [id])
+  status      String        @default("ACTIVE")
+  purchasedAt DateTime      @default(now())
   expiresAt   DateTime
   usedAt      DateTime?
+  attempts    ExamAttempt[]
 
   @@index([userId])
 }
 
 model ExamAttempt {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   codeId        String
+  code          ExamCode     @relation(fields: [codeId], references: [id])
   userId        String
+  user          User         @relation(fields: [userId], references: [id])
   standardId    String
-  startedAt     DateTime  @default(now())
+  standard      Standard     @relation(fields: [standardId], references: [id])
+  startedAt     DateTime     @default(now())
   durationSec   Int
   plan          Json?
   submittedAt   DateTime?
-  autoSubmitted Boolean   @default(false)
+  autoSubmitted Boolean      @default(false)
   score         Int?
   passed        Boolean?
   perChapter    Json?
   byDifficulty  Json?
   byCognitive   Json?
-  status        String    @default("IN_PROGRESS")
+  status        String       @default("IN_PROGRESS")
+  answers       ExamAnswer[]
 
   @@index([userId, startedAt])
 }
 
 model ExamAnswer {
-  id         String  @id @default(cuid())
+  id         String      @id @default(cuid())
   attemptId  String
+  attempt    ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   questionId String
+  question   Question    @relation(fields: [questionId], references: [id])
   selected   Int?
   isCorrect  Boolean?
 
