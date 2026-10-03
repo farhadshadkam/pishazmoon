@@ -10,7 +10,7 @@ export default function AuthPage() {
   const [p, setP] = useState({ firstName: '', lastName: '', birthYear: 1375, county: '', nationalId: '', mobile: '' });
 
   const sendOtp = async () => {
-    const m = p.mobile.replace(/[۰-۹]/g, (d: string) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+    const m = p.mobile.replace(/[۰-۹]/g, (d: string) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
     if (!/^09\d{9}$/.test(m)) return setMsg('موبایل معتبر نیست');
     setMsg('');
     const r = await post<{ sent?: boolean; devCode?: string; error?: string }>('/auth/otp', { mobile: m });
