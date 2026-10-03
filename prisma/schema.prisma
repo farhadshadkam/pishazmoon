@@ -62,6 +62,7 @@ model Standard {
   chapters    Chapter[]
   codes       ExamCode[]
   attempts    ExamAttempt[]
+  orders      Order[]
 
   @@index([groupName, profession, job])
 }
@@ -109,6 +110,7 @@ model Order {
   userId     String
   user       User       @relation(fields: [userId], references: [id])
   standardId String
+  standard   Standard   @relation(fields: [standardId], references: [id])
   amount     Int
   gateway    String     @default("zarinpal")
   authority  String?
