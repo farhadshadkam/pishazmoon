@@ -28,6 +28,7 @@ model User {
   createdAt  DateTime      @default(now())
   codes      ExamCode[]
   attempts   ExamAttempt[]
+  orders     Order[]
 }
 
 model OtpCode {
@@ -98,6 +99,7 @@ model Question {
   aiGenerated Boolean        @default(false)
   status      QuestionStatus @default(PENDING)
   createdAt   DateTime       @default(now())
+  answers     ExamAnswer[]
 
   @@index([chapterId, status])
 }
