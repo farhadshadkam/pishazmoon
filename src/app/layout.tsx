@@ -23,24 +23,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </header>
-        <main className="max-w-[1140px] mx-auto px-4 pb-16 min-h-[60vh]">{children}</main>
+
+        <main className="max-w-[1140px] mx-auto px-4 pb-16 min-h-[60vh]">
+          {children}
+        </main>
+
         <footer className="bg-[#141E4D] text-[#C9D2F2] mt-12 py-10 text-sm" dir="rtl">
           <div className="max-w-[1140px] mx-auto px-4">
-            <p className="text-xs">© ۱۴۰۴ پیش‌آزمون</p>
-            <div className="mt-3 bg-white/10 rounded-lg p-2 text-xs">⚠️ پیش‌آزمون یک سرویس تمرینی مستقل است؛ بازتولید آزمون رسمی سازمان آموزش فنی‌وحرفه‌ای کشور نیست.</div>
-          </div>
-        <footer className="bg-[#141E4D] text-[#C9D2F2] mt-12 py-10 text-sm" dir="rtl">
-          <div className="max-w-[1140px] mx-auto px-4">
-            <div className="flex flex-wrap gap-6 justify-between items-start">
+            <div className="flex flex-wrap gap-8 justify-between items-start">
               <div>
-                <p className="text-xs">© ۱۴۰۴ پیش‌آزمون — سرویس تمرینی مستقل</p>
-                <div className="mt-3 bg-white/10 rounded-lg p-2 text-xs">⚠️ پیش‌آزمون بازتولید آزمون رسمی سازمان آموزش فنی‌وحرفه‌ای کشور نیست.</div>
+                <p className="text-xs mb-3">© ۱۴۰۴ پیش‌آزمون — سرویس تمرینی مستقل</p>
+                <div className="bg-white/10 rounded-lg p-3 text-xs max-w-md">
+                  ⚠️ پیش‌آزمون یک سرویس تمرینی مستقل است؛ بازتولید آزمون رسمی سازمان آموزش فنی‌وحرفه‌ای کشور نیست.
+                </div>
               </div>
-              <div className="flex flex-col gap-2 text-sm">
+              <div className="flex flex-col gap-2">
                 <a href="/standards" className="hover:text-white">فهرست استانداردها</a>
                 <a href="/guide" className="hover:text-white">راهنمای استفاده</a>
                 <a href="/legal" className="hover:text-white">قوانین و مقررات</a>
-                <a href="/admin/login" className="text-[#8892C9] text-xs hover:text-white mt-2">⚙️ ورود مدیران</a>
+                <a href="/admin/login" className="text-[#8892C9] text-xs hover:text-white mt-3 pt-3 border-t border-white/10">⚙️ ورود مدیران</a>
               </div>
             </div>
           </div>
