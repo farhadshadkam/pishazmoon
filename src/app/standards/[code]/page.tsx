@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import BuyButton from './BuyButton';
 export default async function StdDetail({ params }: { params: { code: string } }) {
-  const s = await prisma.standard.findUnique({ where: { code: params.code }, include: { chapters: { orderBy: { order: 1 } } } });
+  const s = await prisma.standard.findUnique({ where: { code: params.code }, include: { chapters: { orderBy: { order: 'asc' } } } });
   if (!s) return <p className="p-10 text-center">استاندارد یافت نشد.</p>;
   const bankTotal = await prisma.question.count({ where: { chapter: { standardId: s.id }, status: 'PUBLISHED' } });
   return (<div dir="rtl" className="grid md:grid-cols-2 gap-6 mt-6 items-start">
