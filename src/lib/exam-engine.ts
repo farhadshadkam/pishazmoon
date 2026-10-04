@@ -91,7 +91,7 @@ export async function submitAttempt(attemptId: string, userId: string, auto = fa
   }
   const std = await prisma.standard.findUnique({ where: { id: at.standardId } });
   const passed = score >= Math.round(40 * (std?.passPct ?? 70) / 100);
-  await prisma.$transaction([...updates,
+  await prisma.$transaction([...(updates as any),
     prisma.examAttempt.update({ where: { id: attemptId }, data: { submittedAt: new Date(), autoSubmitted: auto,
       score, passed, perChapter: [...perChapter.values()], byDifficulty: byDiff, byCognitive: byCog, status: 'SUBMITTED' } }),
     prisma.examCode.update({ where: { id: at.codeId }, data: { status: 'USED', usedAt: new Date() } }),
