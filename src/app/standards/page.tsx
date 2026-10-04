@@ -6,7 +6,7 @@ export default async function StandardsPage({ searchParams }: { searchParams: { 
   const [items, total, groups] = await prisma.$transaction([
     prisma.standard.findMany({ where, skip: (page - 1) * ps, take: ps, include: { chapters: { select: { weight: true } } }, orderBy: { title: 'asc' } }),
     prisma.standard.count({ where }),
-    prisma.standard.groupBy({ by: ['groupName'], where: { published: true } }),
+    prisma.standard.groupBy({ by: ['groupName'], where: { published: true }, orderBy: { groupName: 'asc' } }),
   ]);
   const pages = Math.ceil(total / ps);
   return (<div dir="rtl">
