@@ -9,6 +9,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" />
         <link rel="icon" href="/logo.png" type="image/png" />
       </head>
+      <script dangerouslySetInnerHTML={{ __html: `
+        setTimeout(function() {
+          var s = document.getElementById('splash');
+          if (s) s.parentNode.removeChild(s);
+        }, 2200);
+    ` }} />
       <body>
          {/* اسپلش لوگو */}
          <div className="splash-overlay" id="splash">
