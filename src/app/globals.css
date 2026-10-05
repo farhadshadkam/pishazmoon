@@ -27,3 +27,41 @@ body{font-family:Vazirmatn,Tahoma,sans-serif;background:#F6F7FB;color:var(--ink)
 .tblwrap td{@apply px-3 py-2 border-t border-[#E4E7F2] whitespace-nowrap}
 .upbox{@apply border-2 border-dashed border-[#E4E7F2] rounded-xl text-center p-8 cursor-pointer hover:border-[#2E4BD1] hover:bg-[#FAFBFF] bg-white}
 }
+/* ─── اسپلش اسکرین لوگو ─── */
+.splash-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #141E4D 0%, #1D2E7A 50%, #0E9C9C 100%);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  animation: splashFade 0.6s ease-out 1.4s forwards;
+  pointer-events: none;
+}
+.splash-overlay img {
+  width: 140px; height: 140px; border-radius: 24px;
+  animation: splashLogo 1.4s ease-in-out forwards;
+  box-shadow: 0 20px 60px rgba(255,255,255,0.2);
+}
+.splash-overlay .splash-text {
+  color: #fff; font-size: 18px; font-weight: 800;
+  animation: splashText 1.4s ease-in-out forwards;
+  opacity: 0;
+}
+@keyframes splashLogo {
+  0% { transform: scale(0.3); opacity: 0; }
+  30% { transform: scale(1.15); opacity: 1; }
+  50% { transform: scale(1); }
+  80% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+@keyframes splashText {
+  0%, 25% { opacity: 0; transform: translateY(10px); }
+  40% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes splashFade {
+  to { opacity: 0; visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-overlay { display: none; }
+}
