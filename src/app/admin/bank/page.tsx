@@ -122,7 +122,7 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
           <input className="inp max-w-[250px]" placeholder="🔍 جستجوی استاندارد..." value={search} onChange={(e) => { setSearch(e.target.value); setShowList(true); }} />
           <select className="inp max-w-[200px]" value={groupFilter} onChange={(e) => { setGroupFilter(e.target.value); setShowList(true); }}>
             <option value="">همه گروه‌ها</option>
-            {groups.map((g: string) => <option key={g}>{g}</option>)}
+            {groups.map((g: any) => <option key={g}>{g}</option>)}
           </select>
           <button className="btn-p btn-sm" onClick={() => setShowList(true)}>📋 نمایش ({fa(filtered.length)})</button>
           <button className="btn-g btn-sm" onClick={() => { setSearch(''); setGroupFilter(''); setShowList(false); }}>🔁 پاک‌سازی</button>
