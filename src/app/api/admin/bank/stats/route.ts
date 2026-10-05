@@ -6,8 +6,8 @@ export async function GET(req: Request) {
   const admin = await requireAdmin(req);
   if (!admin) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
+  // همه استانداردها (فعال و غیرفعال)
   const standards = await prisma.standard.findMany({
-    where: { published: true },
     include: {
       chapters: {
         orderBy: { order: 'asc' },
@@ -20,7 +20,6 @@ export async function GET(req: Request) {
     orderBy: { title: 'asc' },
   });
 
-  // شمارش وضعیت‌ها برای هر استاندارد
   const stats = await Promise.all(standards.map(async (std) => {
     const [published, pending, rejected] = await Promise.all([
       prisma.question.count({ where: { chapter: { standardId: std.id }, status: 'PUBLISHED' } }),
@@ -35,6 +34,7 @@ export async function GET(req: Request) {
       profession: std.profession,
       job: std.job,
       title: std.title,
+      published: std.published,
       chapters: std.chapters.map((ch) => ({
         title: ch.title,
         weight: ch.weight,
@@ -50,6 +50,8 @@ export async function GET(req: Request) {
 
   const summary = {
     totalStandards: stats.length,
+    totalActive: stats.filter((s) => s.published).length,
+    totalInactive: stats.filter((s) => !s.published).length,
     totalPublished: stats.reduce((a, s) => a + s.totalPublished, 0),
     totalPending: stats.reduce((a, s) => a + s.totalPending, 0),
     totalRejected: stats.reduce((a, s) => a + s.totalRejected, 0),
