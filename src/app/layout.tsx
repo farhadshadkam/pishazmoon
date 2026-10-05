@@ -10,6 +10,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/logo.png" type="image/png" />
       </head>
       <body>
+         {/* اسپلش لوگو */}
+         <div className="splash-overlay" id="splash">
+            <img src="/logo.png" alt="پیش‌آزمون" />
+            <span className="splash-text">پیش‌آزمون</span>
+         </div>
         <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b" dir="rtl">
           <div className="max-w-[1140px] mx-auto flex items-center gap-4 py-2.5 px-4">
             <a href="/" className="flex items-center gap-2 font-extrabold text-lg text-[#141E4D]">
