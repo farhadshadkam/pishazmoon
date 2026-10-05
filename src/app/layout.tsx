@@ -7,6 +7,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fa" dir="rtl">
       <head>
         <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" />
+        <link rel="icon" href="/logo.png" type="image/png" />
       </head>
       <body>
         <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b" dir="rtl">
