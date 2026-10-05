@@ -1,6 +1,6 @@
 import './globals.css';
 
-export const metadata = { title: 'پیش‌آزمون | محک خودت پیش از آزمون اصلی' };
+export const metadata = { title: 'پیش‌آزمون | خودت رو پیش از آزمون اصای محک بزن!' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b" dir="rtl">
           <div className="max-w-[1140px] mx-auto flex items-center gap-4 py-2.5 px-4">
             <a href="/" className="flex items-center gap-2 font-extrabold text-lg text-[#141E4D]">
-              <svg width="34" height="34" viewBox="0 0 24 24"><polygon points="12,1.5 21.5,7 21.5,17 12,22.5 2.5,17 2.5,7" fill="#1D2E7A"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="11" font-weight="800">پ</text></svg>
+              <img src="/logo.png" alt="پیش‌آزمون" width="40" height="40" className="rounded-lg" />
               پیش‌آزمون
             </a>
             <nav className="hidden md:flex gap-4 mr-auto items-center">
