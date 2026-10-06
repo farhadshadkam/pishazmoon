@@ -65,5 +65,3 @@ body{font-family:Vazirmatn,Tahoma,sans-serif;background:#F6F7FB;color:var(--ink)
 @media (prefers-reduced-motion: reduce) {
   .splash-overlay { display: none; }
 }
-/* اسپلش فقط یک‌بار در هر نشست نمایش داده شود */
-.no-splash .splash-overlay { display: none !important; }
