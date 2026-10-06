@@ -5,13 +5,12 @@ export default function Splash() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // فقط اگر قبلاً در این نشست نمایش داده نشده باشد
-    if (!sessionStorage.getItem('_splash')) {
-      sessionStorage.setItem('_splash', '1');
+    // فقط و فقط یک‌بار برای همیشه نمایش داده شود
+    if (!localStorage.getItem('_splash_done')) {
+      localStorage.setItem('_splash_done', '1');
       setVisible(true);
-      // مخفی‌سازی بعد از انیمیشن
-      const timer = setTimeout(() => setVisible(false), 2200);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setVisible(false), 2200);
+      return () => clearTimeout(t);
     }
   }, []);
 
