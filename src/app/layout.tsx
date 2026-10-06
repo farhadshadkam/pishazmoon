@@ -8,6 +8,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" />
         <link rel="icon" href="/logo.png" type="image/png" />
+         {/* اسکریپت بررسی اسپلش — قبل از رندر بدنه اجرا می‌شود */}
+         <script dangerouslySetInnerHTML={{ __html: `
+           if (sessionStorage.getItem('_splash')) {
+             document.documentElement.classList.add('no-splash');
+           }
+         ` }} />
       </head>
       <script dangerouslySetInnerHTML={{ __html: `
         setTimeout(function() {
