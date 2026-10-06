@@ -1,3 +1,4 @@
+import Splash from '@/components/Splash';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +9,7 @@ export default async function Home() {
 
   return (
     <div dir="rtl">
+      <Splash />
       <section className="rounded-3xl p-10 md:p-14 mt-6 text-white" style={{ background: 'linear-gradient(135deg,#141E4D 0%,#1D2E7A 45%,#0E9C9C 130%)' }}>
         <h1 className="text-3xl md:text-5xl font-extrabold">قبل از آزمون اصلی،<br />خودت را محک بزن.</h1>
         <p className="mt-3 opacity-90 max-w-lg">پیش‌آزمون‌های ۴۰ سؤالیِ منطبق بر وزن‌بندی فصل‌های استانداردهای شایستگی — همراه کارنامه تحلیلی نقاط قوت و ضعف.</p>
