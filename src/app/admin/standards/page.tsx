@@ -42,6 +42,7 @@ export default function AdminStandards() {
   };
 
   const saveEdit = async () => {
+    if (!editing) return;
     const r = await api('PUT', editing, editForm);
     if (r.ok) { setEditing(null); load(); } else alert('خطا در ذخیره');
   };
