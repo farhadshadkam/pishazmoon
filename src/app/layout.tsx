@@ -16,11 +16,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
          ` }} />
       </head>
       <script dangerouslySetInnerHTML={{ __html: `
-        setTimeout(function() {
+        (function() {
           var s = document.getElementById('splash');
-          if (s) s.parentNode.removeChild(s);
-        }, 2200);
-    ` }} />
+          if (!s) return;
+          if (sessionStorage.getItem('_splash')) {
+            s.remove();
+            return;
+          }
+          sessionStorage.setItem('_splash', '1');
+          setTimeout(function() {
+            if (s && s.parentNode) s.parentNode.removeChild(s);
+          }, 2200);
+        })();
+      ` }} />
       <body>
          {/* اسپلش لوگو */}
          <div className="splash-overlay" id="splash">
