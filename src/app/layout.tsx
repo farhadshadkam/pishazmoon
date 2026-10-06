@@ -2,7 +2,7 @@ import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
 
 export const metadata = {
-  title: 'پیش‌آزمون | محک خودت پیش از آزمون اصلی',
+  title: 'پیش‌آزمون | قبل از آزمون اصلی خودت رو محک بزن',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
