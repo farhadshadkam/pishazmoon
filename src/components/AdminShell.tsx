@@ -7,10 +7,13 @@ const MENU = [
   ['/admin', 'داشبورد'],
   ['/admin/standards', 'استانداردها'],
   ['/admin/bank', 'بانک سوالات'],
+  ['/admin/gen', '🤖 تولید هوشمند'],
+  ['/admin/evaluators', '👥 ارزیابان'],    // ← جدید
+  ['/admin/discounts', '🎟 کدهای تخفیف'],  // ← جدید
   ['/admin/reports', 'گزارش آزمون‌ها'],
   ['/admin/finance', 'مدیریت مالی'],
   ['/admin/users', 'کاربران'],
-  ['/admin/settings', 'تنظیمات'],
+  ['/admin/settings', 'تنظیمات'], 
 ];
 
 export default function AdminShell({ children, title }: { children: React.ReactNode; title?: string }) {
