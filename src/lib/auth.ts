@@ -56,3 +56,28 @@ export async function consumeOtp(mobile: string, code: string) {
   await prisma.otpCode.update({ where: { id: otp.id }, data: { usedAt: new Date() } });
   return true;
 }
+// ─── فقط ادمین (نه ارزیاب) ───
+export async function requireAdminRole(req: Request) {
+  try {
+    const { payload } = await jwtVerify(
+      req.headers.get('authorization')?.replace('Bearer ', '') ?? '', SA
+    );
+    if (payload.typ !== 'admin') return null;
+    const user = await prisma.adminUser.findUnique({ where: { id: payload.sub as string } });
+    if (!user || !user.active || user.role === 'evaluator') return null;
+    return user;
+  } catch { return null }
+}
+
+// ─── فقط ارزیاب ───
+export async function requireEvaluator(req: Request) {
+  try {
+    const { payload } = await jwtVerify(
+      req.headers.get('authorization')?.replace('Bearer ', '') ?? '', SA
+    );
+    if (payload.typ !== 'admin') return null;
+    const user = await prisma.adminUser.findUnique({ where: { id: payload.sub as string } });
+    if (!user || !user.active || user.role !== 'evaluator') return null;
+    return user;
+  } catch { return null }
+}
