@@ -69,6 +69,15 @@ export async function POST(req: Request) {
   }
 
   const std = parsed.data.standard;
+    // ─── تطبیق نام گروه با لیست رسمی ───
+  const { matchGroup, normalizeGroup } = await import('@/lib/groups');
+  const groupResult = matchGroup(std.groupName);
+  if (groupResult.confidence >= 80) {
+    std.groupName = groupResult.official;
+  } else {
+    results.warnings.push(`گروه «${std.groupName}» با لیست رسمی تطبیق نشد — به صورت دستی بررسی کنید`);
+  }
+  
   const results = { chaptersAdded: 0, questionsAdded: 0, questionsRejected: 0, warnings: [] as string[] };
 
   // اعتبارسنجی وزن
