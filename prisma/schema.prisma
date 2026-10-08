@@ -13,6 +13,8 @@ model AdminUser {
   passwordHash String
   name         String
   role         String    @default("admin")
+  groupName    String?
+  active       Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 }
@@ -106,18 +108,22 @@ model Question {
 }
 
 model Order {
-  id         String     @id @default(cuid())
-  userId     String
-  user       User       @relation(fields: [userId], references: [id])
-  standardId String
-  standard   Standard   @relation(fields: [standardId], references: [id])
-  amount     Int
-  gateway    String     @default("zarinpal")
-  authority  String?
-  refId      String?
-  status     String     @default("PENDING")
-  createdAt  DateTime   @default(now())
-  codes      ExamCode[]
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  standardId      String
+  standard        Standard      @relation(fields: [standardId], references: [id])
+  amount          Int
+  discountCodeId  String?
+  discountCode    DiscountCode? @relation(fields: [discountCodeId], references: [id])
+  discountAmount  Int           @default(0)
+  finalAmount     Int           @default(0)
+  gateway         String        @default("zarinpal")
+  authority       String?
+  refId           String?
+  status          String        @default("PENDING")
+  createdAt       DateTime      @default(now())
+  codes           ExamCode[]
 
   @@index([userId, createdAt])
 }
