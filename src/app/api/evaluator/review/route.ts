@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { requireEvaluator } from '@/lib/auth';
 
 export async function POST(req: Request) {
-  const evaluator = await requireAdmin(req);
+  const evaluator = await requireEvaluator(req);
   if (!evaluator || evaluator.role !== 'evaluator') {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
