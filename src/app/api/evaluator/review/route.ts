@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   await prisma.question.update({
     where: { id: questionId },
-    data: { status: statusMap[action] },
+    data: { status: statusMap[action] as any },
   });
 
   // ثبت عملکرد
