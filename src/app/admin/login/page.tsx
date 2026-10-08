@@ -5,9 +5,22 @@ import { useState } from 'react';
 export default function AdminLogin() {
   const [e, setE] = useState(''); const [p, setP] = useState(''); const [err, setErr] = useState('');
   const doLogin = async () => {
-    const r = await post<{ token?: string; error?: string }>('/admin/login', { email: e, password: p }, true);
-    if (r.token) { setToken(r.token, true); location.href = '/admin'; } else setErr('ایمیل یا رمز نادرست');
-  };
+    setErr('');
+    const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: e, password: p }),
+    });
+    const d = await res.json();
+    if (d.token) {
+        setToken(d.token, true);
+        location.href = '/admin';
+    } else {
+        setErr('❌ ایمیل یا رمز عبور نادرست است');
+    }
+};
+  
+  
   return (
     <div className="max-w-sm mx-auto mt-16" dir="rtl"><div className="card">
       <h2 className="text-center font-bold">ورود مدیران</h2>
