@@ -207,3 +207,24 @@ model AuditLog {
   meta      Json?
   createdAt DateTime @default(now())
 }
+model DiscountCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  percentage  Int
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  note        String?
+  createdAt   DateTime  @default(now())
+  orders      Order[]
+}
+model QuestionReview {
+  id            String   @id @default(cuid())
+  questionId    String
+  reviewerEmail String
+  action        String
+  reviewedAt    DateTime @default(now())
+
+  @@index([reviewerEmail, reviewedAt])
+}
