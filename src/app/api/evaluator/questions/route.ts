@@ -7,7 +7,9 @@ export async function GET(req: Request) {
   if (!evaluator || evaluator.role !== 'evaluator') {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
-
+  if (!evaluator.groupName) {
+    return NextResponse.json({ error: 'NO_GROUP_ASSIGNED', message: 'به این ارزیاب گروهی اختصاص داده نشده است' }, { status: 400 });
+  }
   const sp = new URL(req.url).searchParams;
   const status = sp.get('status') || 'PENDING';
   const page = Math.max(1, +(sp.get('page') || 1));
