@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
+import { matchGroup } from '@/lib/groups';
 
 const FORBIDDEN = /همه موارد|هیچ‌?کدام|موارد فوق|هر دو|گزینه‌های?\s?[۰-۹0-9]/;
 
 const questionSchema = z.object({
   text: z.string().min(10, 'متن سوال کمتر از ۱۰ کاراکتر است').max(600, 'متن سوال بیش از ۶۰۰ کاراکتر است'),
-  options: z.array(z.string().min(1, 'گزینه خالی است')).length(4, 'باید دقیقاً ۴ گزینه باشد — نه آبجکت'),
+  options: z.array(z.string().min(1, 'گزینه خالی است')).length(4, 'باید دقیقاً ۴ گزینه باشد'),
   correct: z.number().int().min(1, 'correct باید حداقل ۱ باشد').max(4, 'correct باید حداکثر ۴ باشد'),
   cognitive: z.string().optional(),
   difficulty: z.string().optional(),
@@ -33,7 +34,6 @@ const fullSchema = z.object({
   }),
 });
 
-// مقادیر مجاز فارسی
 const VALID_COGNITIVE = ['یادآوری', 'فهم', 'کاربرد', 'تحلیل', 'ارزیابی'];
 const VALID_DIFFICULTY = ['آسان', 'متوسط', 'دشوار'];
 
@@ -56,10 +56,7 @@ export async function POST(req: Request) {
   // اعتبارسنجی ساختار
   const parsed = fullSchema.safeParse(body);
   if (!parsed.success) {
-    const errs = parsed.error.issues.map((e: any) => {
-      const path = e.path.join('.');
-      return `${path}: ${e.message}`;
-    });
+    const errs = parsed.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`);
     return NextResponse.json({
       error: 'INVALID_FORMAT',
       message: 'خطاهای اعتبارسنجی:',
@@ -69,18 +66,22 @@ export async function POST(req: Request) {
   }
 
   const std = parsed.data.standard;
-    // ─── تطبیق نام گروه با لیست رسمی ───
-  const { matchGroup, normalizeGroup } = await import('@/lib/groups');
+
+  // ─── تعریف results (قبل از استفاده) ───
+  const results = { chaptersAdded: 0, questionsAdded: 0, questionsRejected: 0, warnings: [] as string[] };
+
+  // ─── تطبیق نام گروه با لیست رسمی ۶۶ گروه ───
   const groupResult = matchGroup(std.groupName);
   if (groupResult.confidence >= 80) {
+    if (std.groupName !== groupResult.official) {
+      results.warnings.push(`گروه «${std.groupName}» به «${groupResult.official}» تغییر یافت (تطبیق خودکار)`);
+    }
     std.groupName = groupResult.official;
   } else {
     results.warnings.push(`گروه «${std.groupName}» با لیست رسمی تطبیق نشد — به صورت دستی بررسی کنید`);
   }
-  
-  const results = { chaptersAdded: 0, questionsAdded: 0, questionsRejected: 0, warnings: [] as string[] };
 
-  // اعتبارسنجی وزن
+  // ─── اعتبارسنجی وزن ───
   const totalWeight = std.chapters.reduce((a, c) => a + c.weight, 0);
   if (totalWeight !== 40) {
     return NextResponse.json({
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
     }, { status: 422 });
   }
 
-  // اعتبارسنجی مقادیر cognitive و difficulty (هشدار، نه خطا)
+  // ─── اعتبارسنجی cognitive و difficulty (هشدار، نه خطا) ───
   for (const ch of std.chapters) {
     for (const q of ch.questions) {
       if (q.cognitive && !VALID_COGNITIVE.includes(q.cognitive)) {
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // استاندارد را پیدا یا بساز
+  // ─── استاندارد را پیدا یا بساز ───
   let standard = await prisma.standard.findUnique({ where: { code: std.code }, include: { chapters: true } });
 
   if (!standard) {
@@ -123,7 +124,7 @@ export async function POST(req: Request) {
     results.warnings.push(`استاندارد جدید ساخته شد: ${std.title}`);
   }
 
-  // فصل‌ها و سوالات
+  // ─── فصل‌ها و سوالات ───
   for (let i = 0; i < std.chapters.length; i++) {
     const ch = std.chapters[i];
     let chapter = standard.chapters.find((c) => c.title.trim() === ch.title.trim());
@@ -136,15 +137,20 @@ export async function POST(req: Request) {
     }
 
     for (const q of ch.questions) {
+      // بررسی گزینه‌های ممنوع
       if (q.options.some((o) => FORBIDDEN.test(o))) {
         results.questionsRejected++;
         continue;
       }
+
+      // بررسی تکراری
       const dup = await prisma.question.findFirst({ where: { chapterId: chapter.id, text: q.text } });
       if (dup) {
         results.questionsRejected++;
         continue;
       }
+
+      // وارد کردن با وضعیت «در انتظار بازبینی»
       await prisma.question.create({
         data: {
           chapterId: chapter.id,
@@ -162,9 +168,21 @@ export async function POST(req: Request) {
     }
   }
 
+  // ─── ثبت در حسابرسی ───
   await prisma.auditLog.create({
-    data: { actor: admin.email, action: 'FULL_IMPORT', entity: 'Standard', entityId: standard.id, meta: results },
+    data: {
+      actor: admin.email,
+      action: 'FULL_IMPORT',
+      entity: 'Standard',
+      entityId: standard.id,
+      meta: results,
+    },
   });
 
-  return NextResponse.json({ ok: true, standardTitle: std.title, standardCode: std.code, ...results });
+  return NextResponse.json({
+    ok: true,
+    standardTitle: std.title,
+    standardCode: std.code,
+    ...results,
+  });
 }
