@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
 // آمار عملکرد ارزیاب
 export async function GET(req: Request) {
-  const evaluator = await requireAdmin(req);
+  const evaluator = await requireEvaluator(req);
   if (!evaluator || evaluator.role !== 'evaluator') {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
