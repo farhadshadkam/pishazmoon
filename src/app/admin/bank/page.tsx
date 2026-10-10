@@ -28,6 +28,58 @@ export default function AdminBank() {
 }
 
 /* ═══════════════════════════════════════════
+   کامپوننت فیلتر آبشاری مشترک (۶ سطح)
+   ═══════════════════════════════════════════ */
+function CascadeFilter({ g, setG, p, setP, j, setJ, s, setS, ch, setCh, hierOpts, onReset }: {
+  g: string; setG: (v: string) => void;
+  p: string; setP: (v: string) => void;
+  j: string; setJ: (v: string) => void;
+  s: string; setS: (v: string) => void;
+  ch: string; setCh: (v: string) => void;
+  hierOpts: any;
+  onReset: () => void;
+}) {
+  const setHier = (level: string, value: string) => {
+    if (level === 'g') { setG(value); setP(''); setJ(''); setS(''); setCh(''); }
+    else if (level === 'p') { setP(value); setJ(''); setS(''); setCh(''); }
+    else if (level === 'j') { setJ(value); setS(''); setCh(''); }
+    else if (level === 's') { setS(value); setCh(''); }
+    else setCh(value);
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 items-center">
+      <select className="inp max-w-[170px] !py-1.5 text-xs" value={g} onChange={(e) => setHier('g', e.target.value)}>
+        <option value="">همه گروه‌ها</option>
+        {hierOpts?.gs?.map((x: string) => <option key={x}>{x}</option>)}
+      </select>
+
+      <select className="inp max-w-[170px] !py-1.5 text-xs" value={p} onChange={(e) => setHier('p', e.target.value)} disabled={!g}>
+        <option value="">همه حرفه‌ها</option>
+        {hierOpts?.ps?.map((x: string) => <option key={x}>{x}</option>)}
+      </select>
+
+      <select className="inp max-w-[170px] !py-1.5 text-xs" value={j} onChange={(e) => setHier('j', e.target.value)} disabled={!g || !p}>
+        <option value="">همه مشاغل</option>
+        {hierOpts?.js?.map((x: string) => <option key={x}>{x}</option>)}
+      </select>
+
+      <select className="inp max-w-[220px] !py-1.5 text-xs" value={s} onChange={(e) => setHier('s', e.target.value)} disabled={!g || !p || !j}>
+        <option value="">همه استانداردها</option>
+        {hierOpts?.ss?.map((x: any) => <option key={x.v} value={x.v}>{x.l}</option>)}
+      </select>
+
+      <select className="inp max-w-[220px] !py-1.5 text-xs" value={ch} onChange={(e) => setHier('ch', e.target.value)} disabled={!s}>
+        <option value="">همه مراحل کاری</option>
+        {hierOpts?.chs?.map((x: string) => <option key={x}>{x}</option>)}
+      </select>
+
+      <button className="btn-g btn-sm" onClick={onReset}>🔁</button>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
    تب استانداردها
    ═══════════════════════════════════════════ */
 function StatsTab({ onRefresh }: { onRefresh: () => void }) {
@@ -35,9 +87,8 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
   const [loading, setLoading] = useState(true);
   const [showList, setShowList] = useState(false);
   const [search, setSearch] = useState('');
-  const [groupFilter, setGroupFilter] = useState('');
-  const [profFilter, setProfFilter] = useState('');
-  const [jobFilter, setJobFilter] = useState('');
+  const [g, setG] = useState(''); const [p, setP] = useState(''); const [j, setJ] = useState('');
+  const [s, setS] = useState(''); const [ch, setCh] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>({});
 
@@ -50,37 +101,36 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const groups = useMemo(() => {
-    if (!data?.standards) return [];
-    return [...new Set(data.standards.map((s: any) => s.groupName))];
-  }, [data]);
+  const groups = useMemo(() => data?.standards ? [...new Set(data.standards.map((x: any) => x.groupName))] : [], [data]);
+  const professions = useMemo(() => (data?.standards && g) ? [...new Set(data.standards.filter((x: any) => x.groupName === g).map((x: any) => x.profession))] : [], [data, g]);
+  const jobs = useMemo(() => (data?.standards && g && p) ? [...new Set(data.standards.filter((x: any) => x.groupName === g && x.profession === p).map((x: any) => x.job))] : [], [data, g, p]);
+  const standardsList = useMemo(() => (data?.standards && g && p && j) ? data.standards.filter((x: any) => x.groupName === g && x.profession === p && x.job === j) : (data?.standards || []), [data, g, p, j]);
+  const chaptersList = useMemo(() => {
+    if (!data?.standards || !s) return [];
+    const std = data.standards.find((x: any) => x.code === s);
+    return std?.chapters?.map((c: any) => c.title) || [];
+  }, [data, s]);
 
-  const professions = useMemo(() => {
-    if (!data?.standards || !groupFilter) return [];
-    return [...new Set(data.standards.filter((s: any) => s.groupName === groupFilter).map((s: any) => s.profession))];
-  }, [data, groupFilter]);
-
-  const jobs = useMemo(() => {
-    if (!data?.standards || !groupFilter || !profFilter) return [];
-    return [...new Set(data.standards.filter((s: any) => s.groupName === groupFilter && s.profession === profFilter).map((s: any) => s.job))];
-  }, [data, groupFilter, profFilter]);
+  const hierOpts = { gs: groups, ps: professions, js: jobs, ss: standardsList.map((x: any) => ({ v: x.code, l: x.title })), chs: chaptersList };
 
   const filtered = useMemo(() => {
     if (!data?.standards) return [];
-    return data.standards.filter((s: any) => {
-      if (groupFilter && s.groupName !== groupFilter) return false;
-      if (profFilter && s.profession !== profFilter) return false;
-      if (jobFilter && s.job !== jobFilter) return false;
+    return data.standards.filter((std: any) => {
+      if (g && std.groupName !== g) return false;
+      if (p && std.profession !== p) return false;
+      if (j && std.job !== j) return false;
+      if (s && std.code !== s) return false;
+      if (ch && !std.chapters.some((c: any) => c.title === ch)) return false;
       if (search) {
         const q = search.trim();
-        if (!s.title.includes(q) && !s.code.includes(q)) return false;
+        if (!std.title.includes(q) && !std.code.includes(q)) return false;
       }
       return true;
     });
-  }, [data, search, groupFilter, profFilter, jobFilter]);
+  }, [data, search, g, p, j, s, ch]);
 
-  const activeStandards = filtered.filter((s: any) => s.published);
-  const inactiveStandards = filtered.filter((s: any) => !s.published);
+  const activeStandards = filtered.filter((x: any) => x.published);
+  const inactiveStandards = filtered.filter((x: any) => !x.published);
 
   const api = (method: string, id: string, body?: any) =>
     fetch(`/api/admin/standards/${id}`, {
@@ -91,8 +141,8 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
 
   const toggleActive = async (id: string, title: string, active: boolean) => {
     if (!confirm(`${active ? 'غیرفعال' : 'فعال'} کردن «${title}»؟`)) return;
-    const r = await api('PATCH', id);
-    if (r.ok) onRefresh();
+    await api('PATCH', id);
+    onRefresh();
   };
 
   const startEdit = (std: any) => {
@@ -103,7 +153,7 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
   const saveEdit = async () => {
     if (!editing) return;
     const r = await api('PUT', editing, editForm);
-    if (r.ok) { setEditing(null); onRefresh(); } else alert('خطا در ذخیره');
+    if (r.ok) { setEditing(null); onRefresh(); } else alert('خطا');
   };
 
   if (loading) return <p className="text-center py-10 text-slate-400">در حال بارگذاری...</p>;
@@ -119,24 +169,13 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
         <div className="stat text-center"><b className="text-amber-500">{fa(data.summary.totalPending)}</b><span className="text-xs text-slate-400">در انتظار</span></div>
       </div>
 
-      {/* فیلتر */}
+      {/* فیلتر ۶ سطحی */}
       <div className="card p-3 mb-4">
         <div className="flex flex-wrap gap-2 items-center">
-          <input className="inp max-w-[200px]" placeholder="🔍 جستجوی عنوان..." value={search} onChange={(e) => { setSearch(e.target.value); setShowList(true); }} />
-          <select className="inp max-w-[180px]" value={groupFilter} onChange={(e) => { setGroupFilter(e.target.value); setProfFilter(''); setJobFilter(''); setShowList(true); }}>
-            <option value="">همه گروه‌ها</option>
-            {groups.map((g: any) => <option key={g}>{g}</option>)}
-          </select>
-          <select className="inp max-w-[180px]" value={profFilter} onChange={(e) => { setProfFilter(e.target.value); setJobFilter(''); setShowList(true); }} disabled={!groupFilter}>
-            <option value="">همه حرفه‌ها</option>
-            {professions.map((p: any) => <option key={p}>{p}</option>)}
-          </select>
-          <select className="inp max-w-[180px]" value={jobFilter} onChange={(e) => { setJobFilter(e.target.value); setShowList(true); }} disabled={!groupFilter || !profFilter}>
-            <option value="">همه مشاغل</option>
-            {jobs.map((j: any) => <option key={j}>{j}</option>)}
-          </select>
+          <input className="inp max-w-[180px] !py-1.5 text-xs" placeholder="🔍 جستجو..." value={search} onChange={(e) => { setSearch(e.target.value); setShowList(true); }} />
+          <CascadeFilter g={g} setG={setG} p={p} setP={setP} j={j} setJ={setJ} s={s} setS={setS} ch={ch} setCh={setCh} hierOpts={hierOpts}
+            onReset={() => { setSearch(''); setG(''); setP(''); setJ(''); setS(''); setCh(''); setShowList(false); }} />
           <button className="btn-p btn-sm" onClick={() => setShowList(true)}>📋 نمایش ({fa(filtered.length)})</button>
-          <button className="btn-g btn-sm" onClick={() => { setSearch(''); setGroupFilter(''); setProfFilter(''); setJobFilter(''); setShowList(false); }}>🔁 پاک‌سازی</button>
         </div>
       </div>
 
@@ -144,7 +183,6 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
         <div className="card text-center border-dashed py-12">
           <div className="text-4xl">🗂</div>
           <b>برای مشاهده، فیلتر کنید یا دکمه نمایش را بزنید</b>
-          <p className="text-sm text-slate-400 mt-1">({fa(data.summary.totalStandards)} استاندارد ثبت شده)</p>
         </div>
       ) : (
         <>
@@ -153,7 +191,7 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
               <h3 className="font-bold text-sm mb-2">🟢 فعال ({fa(activeStandards.length)})</h3>
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 {activeStandards.map((std: any) => (
-                  <StdCard key={std.id} std={std} editing={editing} editForm={editForm} setEditForm={setEditForm}
+                  <StdCard key={std.id} std={std} ch={ch} editing={editing} editForm={editForm} setEditForm={setEditForm}
                     onStartEdit={() => startEdit(std)} onSave={saveEdit} onCancel={() => setEditing(null)}
                     onToggle={() => toggleActive(std.id, std.title, true)} />
                 ))}
@@ -165,33 +203,33 @@ function StatsTab({ onRefresh }: { onRefresh: () => void }) {
               <h3 className="font-bold text-sm mb-2 text-rose-600">🔴 غیرفعال ({fa(inactiveStandards.length)})</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {inactiveStandards.map((std: any) => (
-                  <StdCard key={std.id} std={std} editing={editing} editForm={editForm} setEditForm={setEditForm}
+                  <StdCard key={std.id} std={std} ch={ch} editing={editing} editForm={editForm} setEditForm={setEditForm}
                     onStartEdit={() => startEdit(std)} onSave={saveEdit} onCancel={() => setEditing(null)}
                     onToggle={() => toggleActive(std.id, std.title, false)} />
                 ))}
               </div>
             </>
           )}
-          {filtered.length === 0 && <div className="card text-center border-dashed py-8"><b>یافت نشد</b></div>}
         </>
       )}
     </div>
   );
 }
 
-function StdCard({ std, editing, editForm, setEditForm, onStartEdit, onSave, onCancel, onToggle }: any) {
+function StdCard({ std, ch, editing, editForm, setEditForm, onStartEdit, onSave, onCancel, onToggle }: any) {
   const ready = std.totalPublished >= 400;
   const pct = Math.min(100, Math.round((std.totalPublished / Math.max(1, std.totalRequired)) * 100));
   const isEditing = editing === std.id;
+
+  // فصل‌های فیلترشده (اگر فیلتر مرحله کاری فعال باشد)
+  const visibleChapters = ch ? std.chapters.filter((c: any) => c.title === ch) : std.chapters;
 
   return (
     <div className={`card ${!std.published ? 'opacity-60 border-rose-200' : ''}`}>
       <div className="flex justify-between items-start gap-2 flex-wrap mb-2">
         <div className="flex-1 min-w-[200px]">
           <div className="flex gap-2 flex-wrap items-center mb-1">
-            {std.published
-              ? <span className={ready ? 'b-ok' : 'b-warn'}>{ready ? 'آزمون فعال' : 'در حال تکمیل'}</span>
-              : <span className="b-bad">🚫 غیرفعال</span>}
+            {std.published ? <span className={ready ? 'b-ok' : 'b-warn'}>{ready ? 'آزمون فعال' : 'در حال تکمیل'}</span> : <span className="b-bad">🚫 غیرفعال</span>}
           </div>
           <b className={`text-sm ${!std.published ? 'line-through text-slate-400' : ''}`}>{std.title}</b>
           <p className="text-xs text-slate-400">{std.groupName} › {std.job}</p>
@@ -235,13 +273,32 @@ function StdCard({ std, editing, editForm, setEditForm, onStartEdit, onSave, onC
           </div>
         </div>
       )}
+
+      {/* فصل‌ها (فیلترشده اگر مرحله کاری انتخاب شده) */}
+      {!isEditing && visibleChapters.length > 0 && (
+        <div className="mt-3 space-y-1">
+          {visibleChapters.map((c: any, i: number) => {
+            const chPct = Math.min(100, Math.round((c.published / Math.max(1, c.required)) * 100));
+            return (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                <span className="w-6 text-slate-400">{fa(i + 1)}.</span>
+                <span className="flex-1 truncate" title={c.title}>{c.title}</span>
+                <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${chPct}%`, background: chPct >= 100 ? '#16A34A' : '#F5A623' }} />
+                </div>
+                <span className="w-16 text-left text-slate-400">{fa(c.published)}/{fa(c.required)}</span>
+              </div>
+            );
+          })}
+          {ch && visibleChapters.length === 0 && <p className="text-xs text-slate-400">این فصل در این استاندارد یافت نشد</p>}
+        </div>
+      )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════
    تب سوالات (بازبینی + انتشار‌یافته)
-   با فیلتر سلسله‌مراتبی + دکمه اصلاح
    ═══════════════════════════════════════════ */
 function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; onRefresh: () => void }) {
   const [questions, setQuestions] = useState<any[]>([]);
@@ -249,10 +306,9 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
   const [page, setPage] = useState(1);
   const ps = 20;
   const [q, setQ] = useState('');
-  const [g, setG] = useState('');
-  const [p, setP] = useState('');
-  const [j, setJ] = useState('');
-  const [hierOpts, setHierOpts] = useState<any>({ gs: [], ps: [], js: [] });
+  const [g, setG] = useState(''); const [p, setP] = useState(''); const [j, setJ] = useState('');
+  const [s, setS] = useState(''); const [ch, setCh] = useState('');
+  const [hierOpts, setHierOpts] = useState<any>({ gs: [], ps: [], js: [], ss: [], chs: [] });
   const [loading, setLoading] = useState(true);
   const [showList, setShowList] = useState(false);
   const [editingQ, setEditingQ] = useState<string | null>(null);
@@ -264,16 +320,17 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
     const sp = new URLSearchParams({
       status, page: String(page), ps: String(ps),
       ...(q && { q }), ...(g && { g }), ...(p && { p }), ...(j && { j }),
+      ...(s && { s }), ...(ch && { ch }),
     });
     const d = await get(`/admin/questions/list?${sp}`, true);
     setQuestions(d.items || []);
     setTotal(d.total || 0);
     if (d.hierOpts) setHierOpts(d.hierOpts);
     setLoading(false);
-  }, [status, page, q, g, p, j, showList]);
+  }, [status, page, q, g, p, j, s, ch, showList]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [q, g, p, j]);
+  useEffect(() => { setPage(1); }, [q, g, p, j, s, ch]);
 
   const setQuestionStatus = async (id: string, newStatus: string) => {
     await fetch(`/api/admin/questions/${id}/status`, {
@@ -281,44 +338,28 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('PA_AD')}` },
       body: JSON.stringify({ status: newStatus }),
     });
-    setQuestions((qs) => qs.filter((i) => i.id !== id));
-    setTotal((t) => t - 1);
+    setQuestions(qs => qs.filter(i => i.id !== id));
+    setTotal(t => t - 1);
   };
 
   const startEditQ = (item: any) => {
     setEditingQ(item.id);
-    setEditQForm({
-      text: item.text,
-      options: [...item.opt],
-      correct: item.correct,
-      difficulty: item.difficulty,
-      cognitive: item.cognitive,
-    });
+    setEditQForm({ text: item.text, options: [...item.opt], correct: item.correct, difficulty: item.difficulty, cognitive: item.cognitive });
   };
 
   const saveEditQ = async () => {
     if (!editingQ) return;
-    const r = await fetch(`/api/admin/questions/${editingQ}`, {
+    await fetch(`/api/admin/questions/${editingQ}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('PA_AD')}` },
-      body: JSON.stringify({
-        text: editQForm.text,
-        options: editQForm.options,
-        correct: editQForm.correct,
-        difficulty: editQForm.difficulty,
-        cognitive: editQForm.cognitive,
-      }),
+      body: JSON.stringify(editQForm),
     });
-    if (r.ok) {
-      setEditingQ(null);
-      load(); // رفرش
-    } else {
-      alert('خطا در ذخیره اصلاحات');
-    }
+    setEditingQ(null);
+    load();
   };
 
   const approveAll = async () => {
-    if (!confirm(`تأیید همه ${fa(questions.length)} سوال این صفحه؟`)) return;
+    if (!confirm(`تأیید همه ${fa(questions.length)} سوال؟`)) return;
     for (const item of questions) {
       await fetch(`/api/admin/questions/${item.id}/status`, {
         method: 'POST',
@@ -331,57 +372,31 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
 
   const pages = Math.max(1, Math.ceil(total / ps));
 
-  const setHier = (k: string, v: string) => {
-    if (k === 'g') { setG(v); setP(''); setJ(''); }
-    else if (k === 'p') { setP(v); setJ(''); }
-    else setJ(v);
-    setShowList(true);
-  };
-
   return (
     <div>
-      {/* فیلتر (همان الگوی تب استانداردها) */}
+      {/* فیلتر ۶ سطحی + جستجو */}
       <div className="card p-3 mb-4">
         <div className="flex flex-wrap gap-2 items-center">
-          <input className="inp max-w-[200px]" placeholder="🔍 جستجو در متن..." value={q}
+          <input className="inp max-w-[180px] !py-1.5 text-xs" placeholder="🔍 جستجو..." value={q}
             onChange={(e) => { setQ(e.target.value); setShowList(true); }} />
-
-          <select className="inp max-w-[180px]" value={g} onChange={(e) => setHier('g', e.target.value)}>
-            <option value="">همه گروه‌ها</option>
-            {hierOpts.gs?.map((x: any) => <option key={x}>{x}</option>)}
-          </select>
-
-          <select className="inp max-w-[180px]" value={p} onChange={(e) => setHier('p', e.target.value)} disabled={!g}>
-            <option value="">همه حرفه‌ها</option>
-            {hierOpts.ps?.map((x: any) => <option key={x}>{x}</option>)}
-          </select>
-
-          <select className="inp max-w-[180px]" value={j} onChange={(e) => setHier('j', e.target.value)} disabled={!g || !p}>
-            <option value="">همه مشاغل</option>
-            {hierOpts.js?.map((x: any) => <option key={x}>{x}</option>)}
-          </select>
-
+          <CascadeFilter g={g} setG={setG} p={p} setP={setP} j={j} setJ={setJ} s={s} setS={setS} ch={ch} setCh={setCh} hierOpts={hierOpts}
+            onReset={() => { setQ(''); setG(''); setP(''); setJ(''); setS(''); setCh(''); setShowList(false); }} />
           <button className="btn-p btn-sm" onClick={() => setShowList(true)}>📋 نمایش ({fa(total)})</button>
-          <button className="btn-g btn-sm" onClick={() => { setQ(''); setG(''); setP(''); setJ(''); setShowList(false); }}>🔁 پاک‌سازی</button>
-
           {status === 'PENDING' && showList && questions.length > 0 && (
             <button className="btn-t btn-sm" onClick={approveAll}>⚡ تأیید همه ({fa(questions.length)})</button>
           )}
         </div>
       </div>
 
-      {/* حالت خالی */}
       {!showList ? (
         <div className="card text-center border-dashed py-12">
           <div className="text-4xl">{status === 'PENDING' ? '⏳' : '✅'}</div>
-          <b>برای مشاهده سوالات، فیلتر کنید یا دکمه نمایش را بزنید</b>
+          <b>برای مشاهده، فیلتر کنید یا دکمه نمایش را بزنید</b>
         </div>
       ) : loading ? (
         <p className="text-center py-10 text-slate-400">در حال بارگذاری...</p>
       ) : questions.length === 0 ? (
-        <div className="card text-center border-dashed py-12">
-          <b>سوالی یافت نشد</b>
-        </div>
+        <div className="card text-center border-dashed py-12"><b>سوالی یافت نشد</b></div>
       ) : (
         <>
           <div className="space-y-3">
@@ -395,19 +410,13 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
                       <span className="b-warn">{item.chapter?.title}</span>
                       <span className="b-gray">{item.cognitive} | {item.difficulty}</span>
                     </div>
-
-                    {/* متن سوال */}
                     <p className="text-sm font-bold leading-7">{item.text}</p>
-
-                    {/* گزینه‌ها */}
                     <div className="mt-2 space-y-1">
                       {item.opt.map((o: string, i: number) => (
-                        <div key={i} className={`text-sm flex gap-2 rounded-lg px-3 py-1.5 ${
-                          i === item.correct ? 'bg-emerald-50 text-emerald-700 font-bold' : 'bg-slate-50'
-                        }`}>
-                          <span className={`h-5 w-5 shrink-0 flex items-center justify-center rounded text-xs font-bold ${
-                            i === item.correct ? 'bg-emerald-200' : 'bg-slate-200'
-                          }`}>{i === item.correct ? '✓' : ['الف','ب','ج','د'][i]}</span>
+                        <div key={i} className={`text-sm flex gap-2 rounded-lg px-3 py-1.5 ${i === item.correct ? 'bg-emerald-50 text-emerald-700 font-bold' : 'bg-slate-50'}`}>
+                          <span className={`h-5 w-5 shrink-0 flex items-center justify-center rounded text-xs font-bold ${i === item.correct ? 'bg-emerald-200' : 'bg-slate-200'}`}>
+                            {i === item.correct ? '✓' : ['الف','ب','ج','د'][i]}
+                          </span>
                           <span>{o}</span>
                         </div>
                       ))}
@@ -416,66 +425,41 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
                     {/* فرم اصلاح */}
                     {editingQ === item.id && (
                       <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
-                        <b className="text-sm text-blue-700">✏️ اصلاح سوال:</b>
-                        <div>
-                          <label className="text-xs font-bold">متن سوال</label>
-                          <textarea className="inp !py-2" rows={2} value={editQForm.text}
-                            onChange={(e: any) => setEditQForm({ ...editQForm, text: e.target.value })} />
-                        </div>
+                        <b className="text-sm text-blue-700">✏️ اصلاح:</b>
+                        <textarea className="inp !py-2" rows={2} value={editQForm.text}
+                          onChange={(e: any) => setEditQForm({ ...editQForm, text: e.target.value })} />
                         {editQForm.options?.map((opt: string, i: number) => (
-                          <div key={i}>
-                            <label className={`text-xs font-bold ${editQForm.correct === i ? 'text-emerald-600' : ''}`}>
-                              گزینه {['الف','ب','ج','د'][i]} {editQForm.correct === i ? '(صحیح)' : ''}
-                            </label>
-                            <input className="inp !py-1.5" value={opt}
-                              onChange={(e: any) => {
-                                const newOpts = [...editQForm.options];
-                                newOpts[i] = e.target.value;
-                                setEditQForm({ ...editQForm, options: newOpts });
-                              }} />
-                          </div>
+                          <input key={i} className="inp !py-1.5" value={opt}
+                            onChange={(e: any) => {
+                              const newOpts = [...editQForm.options];
+                              newOpts[i] = e.target.value;
+                              setEditQForm({ ...editQForm, options: newOpts });
+                            }} placeholder={`گزینه ${['الف','ب','ج','د'][i]}`} />
                         ))}
                         <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <label className="text-xs font-bold">گزینه صحیح</label>
-                            <select className="inp !py-1.5" value={editQForm.correct}
-                              onChange={(e: any) => setEditQForm({ ...editQForm, correct: +e.target.value })}>
-                              <option value={0}>الف</option>
-                              <option value={1}>ب</option>
-                              <option value={2}>ج</option>
-                              <option value={3}>د</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold">دشواری</label>
-                            <select className="inp !py-1.5" value={editQForm.difficulty}
-                              onChange={(e: any) => setEditQForm({ ...editQForm, difficulty: e.target.value })}>
-                              <option>آسان</option>
-                              <option>متوسط</option>
-                              <option>دشوار</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold">سطح شناختی</label>
-                            <select className="inp !py-1.5" value={editQForm.cognitive}
-                              onChange={(e: any) => setEditQForm({ ...editQForm, cognitive: e.target.value })}>
-                              <option>یادآوری</option>
-                              <option>فهم</option>
-                              <option>کاربرد</option>
-                              <option>تحلیل</option>
-                              <option>ارزیابی</option>
-                            </select>
-                          </div>
+                          <select className="inp !py-1.5" value={editQForm.correct}
+                            onChange={(e: any) => setEditQForm({ ...editQForm, correct: +e.target.value })}>
+                            <option value={0}>الف ✓</option><option value={1}>ب ✓</option>
+                            <option value={2}>ج ✓</option><option value={3}>د ✓</option>
+                          </select>
+                          <select className="inp !py-1.5" value={editQForm.difficulty}
+                            onChange={(e: any) => setEditQForm({ ...editQForm, difficulty: e.target.value })}>
+                            <option>آسان</option><option>متوسط</option><option>دشوار</option>
+                          </select>
+                          <select className="inp !py-1.5" value={editQForm.cognitive}
+                            onChange={(e: any) => setEditQForm({ ...editQForm, cognitive: e.target.value })}>
+                            <option>یادآوری</option><option>فهم</option><option>کاربرد</option>
+                            <option>تحلیل</option><option>ارزیابی</option>
+                          </select>
                         </div>
                         <div className="flex gap-2 pt-2">
-                          <button className="btn-t btn-sm flex-1" onClick={saveEditQ}>💾 ذخیره اصلاحات</button>
+                          <button className="btn-t btn-sm flex-1" onClick={saveEditQ}>💾 ذخیره</button>
                           <button className="btn-g btn-sm flex-1" onClick={() => setEditingQ(null)}>انصراف</button>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* دکمه‌ها */}
                   {editingQ !== item.id && (
                     <div className="flex flex-col gap-2">
                       {status === 'PENDING' ? (
@@ -497,7 +481,6 @@ function QuestionsTab({ status, onRefresh }: { status: 'PENDING' | 'PUBLISHED'; 
             ))}
           </div>
 
-          {/* صفحه‌بندی */}
           {pages > 1 && (
             <div className="flex gap-2 justify-center mt-6 flex-wrap">
               {page > 1 && <button className="btn-g btn-sm" onClick={() => setPage(page - 1)}>→ قبلی</button>}
