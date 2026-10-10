@@ -40,17 +40,50 @@ export async function GET(req: Request) {
       where, skip: (page - 1) * ps, take: ps,
       orderBy: { createdAt: 'desc' },
       include: {
-        chapter: { select: { title: true, weight: true, standard: { select: { title: true, code: true, groupName: true } } } },
+        chapter: {
+          select: {
+            title: true, weight: true,
+            standard: { select: { title: true, code: true, groupName: true } },
+          },
+        },
       },
     }),
     prisma.question.count({ where }),
   ]);
 
-  // گزینه‌های فیلتر سلسله‌مراتبی
-  const allStandards = await prisma.standard.findMany({ select: { code: true, groupName: true, profession: true, job: true } });
+  // ─── گزینه‌های فیلتر سلسله‌مراتبی ───
+  const allStandards = await prisma.standard.findMany({
+    select: { code: true, title: true, groupName: true, profession: true, job: true },
+  });
+
   const gs = [...new Set(allStandards.map((x) => x.groupName))];
   const ps_opts = g ? [...new Set(allStandards.filter((x) => x.groupName === g).map((x) => x.profession))] : [];
   const js_opts = (g && p) ? [...new Set(allStandards.filter((x) => x.groupName === g && x.profession === p).map((x) => x.job))] : [];
 
-  return NextResponse.json({ items, total, page, ps, hierOpts: { gs, ps: ps_opts, js: js_opts, ss: [] } });
+  // استانداردهای مرتبط با فیلترهای انتخاب‌شده
+  const ss_opts = (g || p || j)
+    ? allStandards.filter((x) =>
+        (!g || x.groupName === g) && (!p || x.profession === p) && (!j || x.job === j)
+      ).map((x) => ({ v: x.code, l: x.title }))
+    : [];
+
+  // فصل‌های استاندارد انتخاب‌شده
+  const chs_opts = s
+    ? await prisma.chapter.findMany({
+        where: { standard: { code: s } },
+        select: { title: true },
+        orderBy: { order: 'asc' },
+      })
+    : [];
+
+  return NextResponse.json({
+    items, total, page, ps,
+    hierOpts: {
+      gs,
+      ps: ps_opts,
+      js: js_opts,
+      ss: ss_opts,
+      chs: chs_opts.map((c) => c.title),
+    },
+  });
 }
