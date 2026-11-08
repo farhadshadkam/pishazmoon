@@ -45,6 +45,12 @@ export default function AdminGen() {
   const totalQ = std?.chapters?.reduce((a: number, c: any) => a + (c.questions?.length || 0), 0) || 0;
   const totalWeight = std?.chapters?.reduce((a: number, c: any) => a + (c.weight || 0), 0) || 0;
   const chapterCount = std?.chapters?.length || 0;
+  const [tab, setTab] = useState<'full' | 'ai' | 'help'>('full');
+
+// در تب‌ها:
+<button className={`btn ${tab === 'ai' ? 'btn-p' : 'btn-g'} btn-sm`} onClick={() => setTab('ai')}>
+  🤖 تولید با AI
+</button>
 
   return (
     <AdminShell title="🤖 تولید هوشمند سوالات">
