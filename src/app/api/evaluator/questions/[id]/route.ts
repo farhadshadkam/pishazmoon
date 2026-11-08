@@ -8,10 +8,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
   const body = await req.json();
   const data: any = {};
-
   if (body.text) data.text = body.text;
   if (body.options && body.options.length === 4) data.opt = body.options;
-  if (body.correct !== undefined && body.correct >= 0 && body.correct <= 3) data.correct = body.correct;
+  if (body.correct !== undefined) data.correct = body.correct;
   if (body.difficulty) data.difficulty = body.difficulty;
   if (body.cognitive) data.cognitive = body.cognitive;
 
